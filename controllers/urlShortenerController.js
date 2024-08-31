@@ -8,33 +8,36 @@ const UrlModel = require("../models/UrlModel");
 const makeUrlShort = async (req, res) => {
   const originalUrl = req.body.url;
 
-  if(!validator.isURL(originalUrl, {protocols: ['http', 'https', 'ftp']})){
-    return res.json({'error': 'invalid url'});
-  }
+  console.log(originalUrl);
 
-  const urlRegex = /^(http(s):|ftp:)\/\/[a-zA-Z0-9@:%\._\\+~#=]{2,256}\.([a-z]{2,3})\b([a-zA-Z0-9\/?=#_$%\.]*)/g;
+  // if(!validator.isURL(originalUrl, {protocols: ['http', 'https', 'ftp']})){
+  //   return res.json({'error': 'invalid url'});
+  // }
 
-  if(!urlRegex.test(originalUrl)){
-    return res.json({'error': 'invalid url'});
-  }
+  // const urlRegex = /^(http(s):|ftp:)\/\/[a-zA-Z0-9@:%\._\\+~#=]{2,256}\.([a-z]{2,3})\b([a-zA-Z0-9\/?=#_$%\.]*)/g;
+  //
+  // if(!urlRegex.test(originalUrl)){
+  //   return res.json({'error': 'invalid url'});
+  // }
 
   const { hostname } = new URL(originalUrl)
+
+  console.log(hostname)
 
   dns.lookup(
     hostname,
     async (err, address) => {
       if(err) return res.json({"error": "Invalid URL"});
-     
     }
   )
 
   try {
     const alreadyExist = await UrlModel.findOne({ originalUrl: originalUrl});
-    if(alreadyExist) return res.json({'error': 'url has been saved'});
+    if(alreadyExist) return res.end(JSON.stringify({'error': 'url has been saved'}));
     const urlCount = await UrlModel.countDocuments();
 
     const result = await UrlModel.create({
-      urlId: urlCount,
+      urlId: urlCount + 0,
       originalUrl: originalUrl,
       date: new Date(),
     });
@@ -48,7 +51,7 @@ const makeUrlShort = async (req, res) => {
 }
 
 const convertUrlShort = async (req, res) => {
-  const id = parseInt(req.params.id);
+  const id = req.params.id;
 
   try {
     const result = await UrlModel.findOne({ urlId: parseInt(id) });
@@ -57,7 +60,7 @@ const convertUrlShort = async (req, res) => {
   
     const originalUrl = `${result.originalUrl}`;
 
-    res.redirect(originalUrl);
+    return res.redirect(originalUrl);
   } catch(error){
     console.log(error);
     process.exit(1);
