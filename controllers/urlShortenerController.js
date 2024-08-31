@@ -39,7 +39,7 @@ const makeUrlShort = async (req, res) => {
       date: new Date(),
     });
 
-    return res.json({"original_url": originalUrl, "short_url": urlCount});
+    return res.json({"original_url": originalUrl, "short_url": result.urlId});
     
   } catch(err){
     console.error(err);
@@ -48,7 +48,7 @@ const makeUrlShort = async (req, res) => {
 }
 
 const convertUrlShort = async (req, res) => {
-  const { id } = req.params;
+  const id = parseInt(req.params.id);
 
   try {
     const result = await UrlModel.findOne({ urlId: parseInt(id) });
@@ -58,7 +58,7 @@ const convertUrlShort = async (req, res) => {
     const originalUrl = `${result.originalUrl}`;
 
     res.redirect(originalUrl);
-  } catch(err){
+  } catch(error){
     console.log(error);
     process.exit(1);
   }
